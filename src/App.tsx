@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/Layout/Header";
 import { Footer } from "@/components/Layout/Footer";
 import { StudyLayout } from "@/components/StudyLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
 import Learn from "./pages/Learn";
@@ -52,73 +53,85 @@ const App = () => (
               <Route
                 path="/tools"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Tools />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <Tools />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/learn"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Learn />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <Learn />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/chat"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Chat />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <Chat />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/dashboard"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Dashboard />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <Dashboard />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/mock-interview"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <MockInterview />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <MockInterview />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/roadmap"
                 element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Roadmap />
-                    </main>
-                    <Footer />
-                  </div>
+                  <ProtectedRoute>
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <main className="flex-1">
+                        <Roadmap />
+                      </main>
+                      <Footer />
+                    </div>
+                  </ProtectedRoute>
                 }
               />
               <Route
