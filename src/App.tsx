@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import MockInterview from "./pages/MockInterview";
 import FAQ from "./pages/FAQ";
 import Privacy from "./pages/legal/Privacy";
+import Roadmap from "./pages/Roadmap";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,11 +35,12 @@ const App = () => (
               <Route path="/learn" element={<Learn />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/mock-interview" element={<MockInterview />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/legal/privacy" element={<Privacy />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+            <Route path="/mock-interview" element={<MockInterview />} />
+            <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/legal/privacy" element={<Privacy />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />

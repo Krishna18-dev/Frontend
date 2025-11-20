@@ -39,6 +39,12 @@ export const Header = () => {
               Learn
             </Link>
             <Link
+              to="/roadmap"
+              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+            >
+              Roadmap
+            </Link>
+            <Link
               to="/dashboard"
               className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
             >
@@ -111,6 +117,13 @@ export const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Learn
+              </Link>
+              <Link
+                to="/roadmap"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Roadmap
               </Link>
               <Link
                 to="/dashboard"
