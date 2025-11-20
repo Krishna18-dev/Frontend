@@ -1,6 +1,7 @@
-import { MessageSquare, FileText, Briefcase, Gamepad2, User, LogOut } from "lucide-react";
+import { MessageSquare, FileText, Briefcase, Gamepad2, User, LogOut, Home, ArrowLeft } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "AI Chat", url: "/study/chat", icon: MessageSquare },
+  { title: "Study Chat", url: "/study/chat", icon: MessageSquare },
   { title: "Content Generator", url: "/study/content", icon: FileText },
   { title: "Mock Interview", url: "/study/interview", icon: Briefcase },
   { title: "Learning Games", url: "/study/games", icon: Gamepad2 },
@@ -28,15 +29,26 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className={`p-4 border-b ${isCollapsed ? "hidden" : "block"}`}>
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="p-4 border-b">
+        {!isCollapsed && (
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors text-sm font-medium mb-3"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Dashboard</span>
+          </Link>
+        )}
+        <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="p-2 rounded-lg bg-primary text-primary-foreground">
             <MessageSquare className="h-5 w-5" />
           </div>
-          <div className="flex-1 overflow-hidden">
-            <h2 className="font-semibold text-sm">AI Study Companion</h2>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1 overflow-hidden">
+              <h2 className="font-semibold text-sm">AI Study Companion</h2>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
