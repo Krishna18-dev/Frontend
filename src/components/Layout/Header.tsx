@@ -27,38 +27,40 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              to="/tools"
-              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-            >
-              AI Tools
-            </Link>
-            <Link
-              to="/learn"
-              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-            >
-              Learn
-            </Link>
-            <Link
-              to="/roadmap"
-              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-            >
-              Roadmap
-            </Link>
-            <Link
-              to="/dashboard"
-              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/chat"
-              className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-            >
-              AI Mentor
-            </Link>
-          </div>
+          {user && (
+            <div className="hidden md:flex items-center gap-8">
+              <Link
+                to="/tools"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                AI Tools
+              </Link>
+              <Link
+                to="/learn"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Learn
+              </Link>
+              <Link
+                to="/roadmap"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Roadmap
+              </Link>
+              <Link
+                to="/dashboard"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/chat"
+                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              >
+                AI Mentor
+              </Link>
+            </div>
+          )}
 
           {/* Search & CTA */}
           <div className="hidden md:flex items-center gap-4">
@@ -127,41 +129,45 @@ export const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/40 animate-fade-in">
             <div className="flex flex-col gap-4">
-              <Link
-                to="/tools"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                AI Tools
-              </Link>
-              <Link
-                to="/learn"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Learn
-              </Link>
-              <Link
-                to="/roadmap"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Roadmap
-              </Link>
-              <Link
-                to="/dashboard"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/chat"
-                className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                AI Mentor
-              </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/tools"
+                    className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    AI Tools
+                  </Link>
+                  <Link
+                    to="/learn"
+                    className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Learn
+                  </Link>
+                  <Link
+                    to="/roadmap"
+                    className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Roadmap
+                  </Link>
+                  <Link
+                    to="/dashboard"
+                    className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/chat"
+                    className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    AI Mentor
+                  </Link>
+                </>
+              )}
               <div className="relative mt-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input

@@ -2,8 +2,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sparkles, Zap, Target, TrendingUp, MessageSquare, GraduationCap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -29,18 +31,29 @@ const Home = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/chat">
-                <Button variant="gradient" size="lg" className="w-full sm:w-auto">
-                  <MessageSquare className="mr-2" />
-                  Try AI Mentor
-                </Button>
-              </Link>
-              <Link to="/tools">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  <Zap className="mr-2" />
-                  Explore Tools
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/chat">
+                    <Button variant="gradient" size="lg" className="w-full sm:w-auto">
+                      <MessageSquare className="mr-2" />
+                      Try AI Mentor
+                    </Button>
+                  </Link>
+                  <Link to="/tools">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                      <Zap className="mr-2" />
+                      Explore Tools
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="gradient" size="lg" className="w-full sm:w-auto">
+                    <Sparkles className="mr-2" />
+                    Get Started Free
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -136,9 +149,9 @@ const Home = () => {
               <p className="text-lg text-white/90 max-w-2xl mx-auto">
                 Join thousands of students building amazing projects with AI tools and personalized guidance.
               </p>
-              <Link to="/dashboard">
+              <Link to={user ? "/dashboard" : "/auth"}>
                 <Button variant="secondary" size="lg" className="bg-white text-primary hover:bg-white/90">
-                  Get Started Free
+                  {user ? "Go to Dashboard" : "Get Started Free"}
                 </Button>
               </Link>
             </div>
