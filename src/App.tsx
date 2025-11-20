@@ -21,6 +21,7 @@ import Roadmap from "./pages/Roadmap";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding";
 import ChatPage from "./pages/study/ChatPage";
 import ContentGenerator from "./pages/study/ContentGenerator";
 import Interview from "./pages/study/Interview";
@@ -159,6 +160,7 @@ const App = () => (
                 }
               />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
               {/* Study routes with sidebar (protected) */}
               <Route

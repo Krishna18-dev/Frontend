@@ -58,7 +58,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Account created! Please check your email to confirm.");
+      toast.success("Account created successfully!");
+      navigate("/onboarding");
     }
 
     return { error };
