@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Search, Sparkles, Moon, Sun, User, LogOut } from "lucide-react";
+import { Menu, X, Search, Sparkles, Moon, Sun, User, LogOut, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/ThemeProvider";
@@ -84,6 +84,12 @@ export const Header = () => {
             </Button>
             {user ? (
               <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/study/chat">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Study Companion
+                  </Link>
+                </Button>
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/profile">
                     <User className="h-4 w-4 mr-2" />
