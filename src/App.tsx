@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/Layout/Header";
 import { Footer } from "@/components/Layout/Footer";
+import { StudyLayout } from "@/components/StudyLayout";
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
 import Learn from "./pages/Learn";
@@ -19,6 +20,10 @@ import Roadmap from "./pages/Roadmap";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import ChatPage from "./pages/study/ChatPage";
+import ContentGenerator from "./pages/study/ContentGenerator";
+import Interview from "./pages/study/Interview";
+import LearningGames from "./pages/study/LearningGames";
 
 const queryClient = new QueryClient();
 
@@ -30,27 +35,163 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/tools" element={<Tools />} />
-                  <Route path="/learn" element={<Learn />} />
-                  <Route path="/chat" element={<Chat />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/mock-interview" element={<MockInterview />} />
-                  <Route path="/roadmap" element={<Roadmap />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/legal/privacy" element={<Privacy />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/profile" element={<Profile />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
+            <Routes>
+              {/* Public routes with header/footer */}
+              <Route
+                path="/"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Home />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/tools"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Tools />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/learn"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Learn />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Chat />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Dashboard />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/mock-interview"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <MockInterview />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/roadmap"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Roadmap />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/faq"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <FAQ />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route
+                path="/legal/privacy"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-1">
+                      <Privacy />
+                    </main>
+                    <Footer />
+                  </div>
+                }
+              />
+              <Route path="/auth" element={<Auth />} />
+
+              {/* Study routes with sidebar (protected) */}
+              <Route
+                path="/study/chat"
+                element={
+                  <StudyLayout>
+                    <ChatPage />
+                  </StudyLayout>
+                }
+              />
+              <Route
+                path="/study/content"
+                element={
+                  <StudyLayout>
+                    <ContentGenerator />
+                  </StudyLayout>
+                }
+              />
+              <Route
+                path="/study/interview"
+                element={
+                  <StudyLayout>
+                    <Interview />
+                  </StudyLayout>
+                }
+              />
+              <Route
+                path="/study/games"
+                element={
+                  <StudyLayout>
+                    <LearningGames />
+                  </StudyLayout>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <StudyLayout>
+                    <Profile />
+                  </StudyLayout>
+                }
+              />
+
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
