@@ -350,10 +350,10 @@ const Learn = () => {
         >
           <h1 className="text-4xl sm:text-5xl font-bold">
             Learning{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">Center</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">Hub</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Follow guided learning paths and discover curated YouTube courses to master new skills.
+            Discover curated courses and guided learning paths to master new skills with Ascendia.
           </p>
         </motion.div>
 

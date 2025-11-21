@@ -2,3 +2,9 @@ project_id = "qkefqkdgkbqfjuuudnir"
 
 [functions.generate-roadmap]
 verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = false
+
+[functions.interview-assistant]
+verify_jwt = false
