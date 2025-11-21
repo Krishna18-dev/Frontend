@@ -335,14 +335,21 @@ const LearningGames = () => {
             transition={{ duration: 0.6 }}
             style={{ transformStyle: "preserve-3d" }}
           >
-            <Card className="absolute inset-0 backface-hidden flex items-center justify-center p-8 bg-primary/5">
-              <p className="text-2xl font-semibold text-center">{card.front}</p>
+            <Card 
+              className="absolute inset-0 flex items-center justify-center p-8 bg-card border-2 z-10"
+              style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
+            >
+              <p className="text-2xl font-semibold text-center text-foreground">{card.front}</p>
             </Card>
             <Card
-              className="absolute inset-0 backface-hidden flex items-center justify-center p-8 bg-success/5"
-              style={{ transform: "rotateY(180deg)" }}
+              className="absolute inset-0 flex items-center justify-center p-8 bg-card border-2 z-10"
+              style={{ 
+                transform: "rotateY(180deg)", 
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden"
+              }}
             >
-              <p className="text-xl text-center">{card.back}</p>
+              <p className="text-xl text-center text-foreground">{card.back}</p>
             </Card>
           </motion.div>
         </motion.div>
@@ -652,49 +659,9 @@ const LearningGames = () => {
                             </Button>
                           </div>
 
-                          <div className="relative min-h-[400px] border-2 border-dashed border-border rounded-lg p-8">
-                            {/* Center concept */}
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                              <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold shadow-lg">
-                                {sampleConcepts.center}
-                              </div>
-                            </div>
-
-                            {/* Surrounding concepts */}
-                            {sampleConcepts.concepts.map((concept, index) => {
-                              const angle = (index / sampleConcepts.concepts.length) * 2 * Math.PI;
-                              const radius = 150;
-                              const x = Math.cos(angle) * radius;
-                              const y = Math.sin(angle) * radius;
-                              const isSelected = selectedConcept === concept.id;
-                              const hasConnection = userConnections.some(
-                                c => c.from === concept.id || c.to === concept.id
-                              );
-
-                              return (
-                                <motion.button
-                                  key={concept.id}
-                                  onClick={() => handleConceptClick(concept.id)}
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all ${
-                                    isSelected
-                                      ? "border-primary bg-primary text-primary-foreground shadow-lg scale-110"
-                                      : hasConnection
-                                      ? "border-success bg-success/10 text-success"
-                                      : "border-border bg-card hover:border-primary"
-                                  }`}
-                                  style={{
-                                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                                  }}
-                                >
-                                  {concept.text}
-                                </motion.button>
-                              );
-                            })}
-
-                            {/* Connection lines */}
-                            <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+                          <div className="relative min-h-[400px] border-2 border-dashed border-border rounded-lg p-8 bg-background">
+                            {/* Connection lines - render behind everything */}
+                            <svg className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
                               {userConnections.map((conn, idx) => {
                                 const fromConcept = sampleConcepts.concepts.find(c => c.id === conn.from);
                                 const toConcept = sampleConcepts.concepts.find(c => c.id === conn.to);
@@ -732,6 +699,46 @@ const LearningGames = () => {
                                 );
                               })}
                             </svg>
+
+                            {/* Center concept */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                              <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold shadow-lg">
+                                {sampleConcepts.center}
+                              </div>
+                            </div>
+
+                            {/* Surrounding concepts */}
+                            {sampleConcepts.concepts.map((concept, index) => {
+                              const angle = (index / sampleConcepts.concepts.length) * 2 * Math.PI;
+                              const radius = 150;
+                              const x = Math.cos(angle) * radius;
+                              const y = Math.sin(angle) * radius;
+                              const isSelected = selectedConcept === concept.id;
+                              const hasConnection = userConnections.some(
+                                c => c.from === concept.id || c.to === concept.id
+                              );
+
+                              return (
+                                <motion.button
+                                  key={concept.id}
+                                  onClick={() => handleConceptClick(concept.id)}
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all z-30 ${
+                                    isSelected
+                                      ? "border-primary bg-primary text-primary-foreground shadow-lg scale-110"
+                                      : hasConnection
+                                      ? "border-success bg-success/20 text-success-foreground"
+                                      : "border-border bg-card hover:border-primary"
+                                  }`}
+                                  style={{
+                                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                  }}
+                                >
+                                  {concept.text}
+                                </motion.button>
+                              );
+                            })}
                           </div>
 
                           {userConnections.length > 0 && (
