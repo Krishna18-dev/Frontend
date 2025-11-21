@@ -39,21 +39,21 @@ serve(async (req) => {
     }
 
     const systemPrompts: Record<string, string> = {
-      "lecture-notes": "You are an expert educator creating comprehensive lecture notes. Format the content with clear sections, bullet points, and key takeaways.",
-      "roadmap": "You are a learning advisor creating structured learning roadmaps. Include milestones, timelines, resources, and progressive steps.",
-      "timetable": "You are a study planner creating realistic study schedules. Include time blocks, breaks, and balanced coverage of topics.",
-      "project": "You are a project planning expert. Create detailed project outlines with phases, tasks, deliverables, and timelines.",
-      "mcqs": "You are a test creator generating practice questions. Create 10 multiple-choice questions with explanations for correct answers.",
-      "research": "You are an academic writing expert. Create a research paper outline with sections, key points, and suggested references.",
+      "lecture-notes": "You are an expert educator creating detailed lecture notes. Structure content with: 1) Introduction/Overview 2) Main Concepts (with definitions and explanations) 3) Key Examples 4) Important Points to Remember 5) Summary. Use clear headings, bullet points, and emphasize core concepts.",
+      "roadmap": "You are a learning path designer. Create a step-by-step learning roadmap with: 1) Prerequisites 2) Beginner Level (weeks 1-4) 3) Intermediate Level (weeks 5-8) 4) Advanced Level (weeks 9-12) 5) Resources for each stage 6) Milestones and checkpoints. Format as a progressive journey.",
+      "timetable": "You are a study schedule planner. Create a weekly timetable with: 1) Daily study sessions with specific times (e.g., 9:00 AM - 11:00 AM) 2) Topics for each session 3) Break times 4) Review sessions 5) Practice/Exercise time. Format as a realistic weekly schedule with time blocks.",
+      "project": "You are a project design expert. Create a hands-on project plan with: 1) Project Goal/Objective 2) Required Tools/Technologies 3) Phase 1: Setup and Basic Structure 4) Phase 2: Core Features 5) Phase 3: Advanced Features 6) Phase 4: Testing and Refinement 7) Expected Outcomes. Focus on practical implementation steps.",
+      "mcqs": "You are an assessment creator. Generate exactly 10 multiple-choice questions with: 1) Question stem 2) Four options (A, B, C, D) 3) Correct answer marked 4) Detailed explanation of why the answer is correct 5) Difficulty level (Easy/Medium/Hard). Cover different aspects of the topic.",
+      "research": "You are an academic research advisor. Create a research paper structure with: 1) Research Question/Thesis 2) Literature Review outline 3) Methodology section 4) Expected Findings/Analysis 5) Discussion points 6) Conclusion 7) Suggested References (at least 5). Format as an academic paper outline.",
     };
 
     const prompts: Record<string, string> = {
-      "lecture-notes": `Create comprehensive lecture notes on: ${topic}\n\nAdditional context: ${details || "None"}`,
-      "roadmap": `Create a learning roadmap for: ${topic}\n\nAdditional details: ${details || "None"}`,
-      "timetable": `Create a study timetable for: ${topic}\n\nAdditional details: ${details || "None"}`,
-      "project": `Create a project outline for: ${topic}\n\nAdditional details: ${details || "None"}`,
-      "mcqs": `Generate 10 practice MCQs on: ${topic}\n\nFocus areas: ${details || "General coverage"}`,
-      "research": `Create a research paper outline on: ${topic}\n\nAdditional details: ${details || "None"}`,
+      "lecture-notes": `Create comprehensive lecture notes for teaching "${topic}". Include detailed explanations of all major concepts, provide examples, and highlight key takeaways. ${details ? `Focus on: ${details}` : "Cover all fundamental aspects."}`,
+      "roadmap": `Design a complete learning roadmap for mastering "${topic}". Break it down into beginner, intermediate, and advanced stages with specific weekly goals, recommended resources, and practice milestones. ${details ? `Special focus: ${details}` : "Create a 12-week comprehensive plan."}`,
+      "timetable": `Create a detailed weekly study timetable for "${topic}". Include specific time slots for each day, topics to cover in each session, break times, and review periods. Make it realistic and balanced. ${details ? `Considerations: ${details}` : "Assume 2-3 hours of daily study time."}`,
+      "project": `Design a hands-on project for learning "${topic}". Include clear objectives, required tools, step-by-step implementation phases, and expected deliverables. Make it practical and implementable. ${details ? `Project requirements: ${details}` : "Create an intermediate-level project."}`,
+      "mcqs": `Generate 10 multiple-choice questions to test knowledge of "${topic}". Each question should have 4 options with clear difficulty levels and explanations. ${details ? `Focus areas: ${details}` : "Cover core concepts and applications."}`,
+      "research": `Create a research paper outline for "${topic}". Include research questions, methodology, expected analysis, and suggested academic references. Structure it as a formal academic paper. ${details ? `Research focus: ${details}` : "Create a comprehensive academic outline."}`,
     };
 
     const systemPrompt = systemPrompts[contentType] || "You are a helpful educational assistant.";
