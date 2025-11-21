@@ -2,7 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Sparkles, Lightbulb, Target, Zap } from "lucide-react";
+import { Send, Sparkles, Lightbulb, Target, Zap, Youtube, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface Message {
   role: "user" | "assistant";
@@ -10,22 +13,35 @@ interface Message {
   suggestions?: string[];
 }
 
+interface YouTubeVideo {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  channelTitle: string;
+  url: string;
+}
+
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Hi! I'm your AI Study Mentor. I can help you with project ideas, learning paths, tool recommendations, and any questions you have. What would you like to work on today?",
+        "Hi! I'm your AI Study Mentor powered by Gemini. I can help you with project ideas, learning paths, tool recommendations, YouTube learning resources, and any questions you have. What would you like to work on today?",
       suggestions: [
         "Help me choose an AI tool for my project",
         "I need ideas for a school presentation",
         "What should I learn next?",
-        "How can I improve my coding skills?",
+        "Find YouTube videos about React",
       ],
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showYouTubeSearch, setShowYouTubeSearch] = useState(false);
+  const [youtubeQuery, setYoutubeQuery] = useState("");
+  const [youtubeVideos, setYoutubeVideos] = useState<YouTubeVideo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -44,36 +60,76 @@ const Chat = () => {
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response (in real app, call API)
-    setTimeout(() => {
-      const responses = [
-        "That's a great question! Based on what you're trying to achieve, I'd recommend starting with Gamma.ai for creating presentations. It's intuitive and perfect for students.",
-        "I can help you with that! Let's break this down into smaller steps. First, what's the main topic or goal of your project?",
-        "Excellent! For improving your coding skills, I suggest starting with our Coding learning path. Would you like me to recommend some specific projects?",
-        "That sounds like an interesting project! I can suggest some AI tools that would be perfect for this. What's your timeline?",
-      ];
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: { messages: [...messages, userMessage] },
+      });
 
-      const randomResponse =
-        responses[Math.floor(Math.random() * responses.length)];
+      if (error) throw error;
 
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.content,
+        suggestions: [
+          "Tell me more",
+          "What's the next step?",
+          "Can you explain that differently?",
+        ],
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      toast.error(error.message || "Failed to send message");
+      
+      // Add error message to chat
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: randomResponse,
-          suggestions: [
-            "Show me the learning path",
-            "What tools do I need?",
-            "Give me a project template",
-          ],
+          content: "I apologize, but I encountered an error. Please try again.",
         },
       ]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
+  };
+
+  const handleYouTubeSearch = async () => {
+    if (!youtubeQuery.trim()) {
+      toast.error("Please enter a search query");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("youtube-search", {
+        body: { query: youtubeQuery, maxResults: 6 },
+      });
+
+      if (error) throw error;
+
+      setYoutubeVideos(data.videos);
+      
+      if (data.videos.length === 0) {
+        toast.info("No videos found. Try a different search term.");
+      } else {
+        toast.success(`Found ${data.videos.length} videos`);
+      }
+    } catch (error: any) {
+      console.error("Error searching YouTube:", error);
+      toast.error(error.message || "Failed to search YouTube");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setInput(suggestion);
+    if (suggestion.toLowerCase().includes("youtube")) {
+      setShowYouTubeSearch(true);
+    } else {
+      setInput(suggestion);
+    }
   };
 
   return (
@@ -83,7 +139,7 @@ const Chat = () => {
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-4">
             <Sparkles className="h-4 w-4" />
-            <span>AI Study Mentor</span>
+            <span>AI Study Mentor • Powered by Gemini</span>
           </div>
           <h1 className="text-4xl font-bold mb-2">
             Your Personal{" "}
@@ -92,7 +148,7 @@ const Chat = () => {
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Get personalized guidance, project ideas, and instant help
+            Get personalized guidance, project ideas, YouTube learning resources, and instant help
           </p>
         </div>
 
@@ -114,7 +170,7 @@ const Chat = () => {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
 
                   {/* Suggestions */}
                   {message.suggestions && message.role === "assistant" && (
@@ -174,6 +230,7 @@ const Chat = () => {
                 }}
                 placeholder="Ask me anything... (Shift+Enter for new line)"
                 className="min-h-[60px] max-h-[120px] resize-none"
+                disabled={isTyping}
               />
               <Button
                 onClick={handleSend}
@@ -182,7 +239,11 @@ const Chat = () => {
                 size="icon"
                 className="h-[60px] w-[60px] flex-shrink-0"
               >
-                <Send className="h-5 w-5" />
+                {isTyping ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -190,7 +251,7 @@ const Chat = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group">
+          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group" onClick={() => setInput("Give me some creative project ideas")}>
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                 <Lightbulb className="h-5 w-5 text-primary" />
@@ -204,7 +265,7 @@ const Chat = () => {
             </div>
           </Card>
 
-          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group">
+          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group" onClick={() => setInput("What should I learn next for my career?")}>
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-primary-glow/10 group-hover:bg-primary-glow/20 transition-colors">
                 <Target className="h-5 w-5 text-primary-glow" />
@@ -218,20 +279,72 @@ const Chat = () => {
             </div>
           </Card>
 
-          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group">
+          <Card className="p-4 hover:shadow-md transition-all cursor-pointer group" onClick={() => setShowYouTubeSearch(true)}>
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                <Zap className="h-5 w-5 text-accent" />
+                <Youtube className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-1">Tool Recommendations</h3>
+                <h3 className="font-semibold text-sm mb-1">YouTube Search</h3>
                 <p className="text-xs text-muted-foreground">
-                  Find the perfect AI tool for your needs
+                  Find educational videos on any topic
                 </p>
               </div>
             </div>
           </Card>
         </div>
+
+        {/* YouTube Search Section */}
+        {showYouTubeSearch && (
+          <Card className="mt-8 p-6 animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <Youtube className="h-5 w-5 text-accent" />
+              <h2 className="text-lg font-semibold">Search YouTube Learning Videos</h2>
+            </div>
+            
+            <div className="flex gap-2 mb-6">
+              <Input
+                value={youtubeQuery}
+                onChange={(e) => setYoutubeQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleYouTubeSearch()}
+                placeholder="e.g., React tutorial, Machine Learning basics..."
+                disabled={isSearching}
+              />
+              <Button onClick={handleYouTubeSearch} disabled={isSearching || !youtubeQuery.trim()}>
+                {isSearching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  "Search"
+                )}
+              </Button>
+            </div>
+
+            {youtubeVideos.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {youtubeVideos.map((video) => (
+                  <a
+                    key={video.id}
+                    href={video.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group border rounded-lg overflow-hidden hover:shadow-md transition-all"
+                  >
+                    <img src={video.thumbnail} alt={video.title} className="w-full aspect-video object-cover" />
+                    <div className="p-3">
+                      <h3 className="font-semibold text-sm mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+                        {video.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -1,18 +1,77 @@
-import { useState } from "react";
-import { Sparkles, Send } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, Send, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
 const ChatPage = () => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "assistant",
+      content: "Hi! I'm your AI Study Companion powered by Gemini. Ask me anything about your studies, career prep, or learning goals. I can help with study notes, roadmaps, practice questions, and interview prep!",
+    },
+  ]);
   const [message, setMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (message.trim()) {
-      // Handle send message
-      console.log("Sending:", message);
-      setMessage("");
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!message.trim() || isTyping) return;
+
+    const userMessage: Message = { role: "user", content: message };
+    setMessages((prev) => [...prev, userMessage]);
+    setMessage("");
+    setIsTyping(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: { messages: [...messages, userMessage] },
+      });
+
+      if (error) throw error;
+
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.content,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      toast.error(error.message || "Failed to send message");
+      
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "I apologize, but I encountered an error. Please try again.",
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
     }
   };
+
+  const suggestedQuestions = [
+    "Create study notes for Python basics",
+    "Generate a 3-month learning roadmap for web development",
+    "Give me 10 practice MCQs on JavaScript",
+    "Help me prepare for a software engineer interview",
+  ];
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)]">
@@ -23,20 +82,65 @@ const ChatPage = () => {
             <h1 className="text-xl font-semibold">AI Study Companion</h1>
           </div>
           <p className="text-sm opacity-90">
-            Ask me anything about your studies, career prep, or learning goals
+            Powered by Gemini • Ask me anything about your studies, career prep, or learning goals
           </p>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-8">
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Sparkles className="h-16 w-16 text-primary/20 mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">Start a conversation</h2>
-            <p className="text-muted-foreground mb-8">
-              Try asking for study notes, roadmaps, practice questions, or interview prep
-            </p>
-          </div>
+        <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.role === "user" ? "justify-end" : "justify-start"
+              } animate-fade-in`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl p-4 ${
+                  msg.role === "user"
+                    ? "bg-gradient-primary text-white"
+                    : "bg-muted"
+                }`}
+              >
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex justify-start animate-fade-in">
+              <div className="bg-muted rounded-2xl p-4">
+                <div className="flex gap-2">
+                  <div className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce" />
+                  <div
+                    className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  />
+                  <div
+                    className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {messages.length === 1 && !isTyping && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
+              {suggestedQuestions.map((question, index) => (
+                <button
+                  key={index}
+                  onClick={() => setMessage(question)}
+                  className="text-left p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/50 transition-all text-sm"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
@@ -46,13 +150,20 @@ const ChatPage = () => {
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              onKeyPress={(e) => e.key === "Enter" && !isTyping && handleSend()}
               placeholder="Ask me anything about your studies..."
               className="flex-1"
+              disabled={isTyping}
             />
-            <Button onClick={handleSend} disabled={!message.trim()}>
-              <Send className="h-4 w-4 mr-2" />
-              Send
+            <Button onClick={handleSend} disabled={!message.trim() || isTyping}>
+              {isTyping ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send
+                </>
+              )}
             </Button>
           </div>
         </div>
