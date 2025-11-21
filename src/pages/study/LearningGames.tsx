@@ -639,9 +639,11 @@ const LearningGames = () => {
                         </motion.div>
                       ) : (
                         <>
-                          <div className="text-center space-y-2">
-                            <h3 className="text-xl font-semibold">{sampleConcepts.center}</h3>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="text-center space-y-2 mb-4">
+                            <div className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-full font-semibold text-lg">
+                              {sampleConcepts.center}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-2">
                               Click two concepts to connect them. Find all {sampleConcepts.correctConnections.length} correct connections!
                             </p>
                           </div>
@@ -659,96 +661,73 @@ const LearningGames = () => {
                             </Button>
                           </div>
 
-                          <div className="relative min-h-[400px] border-2 border-dashed border-border rounded-lg p-8 bg-background">
-                            {/* Connection lines - render behind everything */}
-                            <svg className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
-                              {userConnections.map((conn, idx) => {
-                                const fromConcept = sampleConcepts.concepts.find(c => c.id === conn.from);
-                                const toConcept = sampleConcepts.concepts.find(c => c.id === conn.to);
-                                if (!fromConcept || !toConcept) return null;
-
-                                const fromIndex = sampleConcepts.concepts.indexOf(fromConcept);
-                                const toIndex = sampleConcepts.concepts.indexOf(toConcept);
-                                
-                                const fromAngle = (fromIndex / sampleConcepts.concepts.length) * 2 * Math.PI;
-                                const toAngle = (toIndex / sampleConcepts.concepts.length) * 2 * Math.PI;
-                                const radius = 150;
-                                
-                                const x1 = Math.cos(fromAngle) * radius + 250;
-                                const y1 = Math.sin(fromAngle) * radius + 200;
-                                const x2 = Math.cos(toAngle) * radius + 250;
-                                const y2 = Math.sin(toAngle) * radius + 200;
-
-                                const isCorrect = sampleConcepts.correctConnections.some(
-                                  c => (c.from === conn.from && c.to === conn.to) ||
-                                       (c.from === conn.to && c.to === conn.from)
-                                );
-
-                                return (
-                                  <line
-                                    key={idx}
-                                    x1={x1}
-                                    y1={y1}
-                                    x2={x2}
-                                    y2={y2}
-                                    stroke={isCorrect ? "hsl(var(--success))" : "hsl(var(--muted-foreground))"}
-                                    strokeWidth="2"
-                                    strokeDasharray={isCorrect ? "0" : "5,5"}
-                                    opacity="0.6"
-                                  />
-                                );
-                              })}
-                            </svg>
-
-                            {/* Center concept */}
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                              <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold shadow-lg">
-                                {sampleConcepts.center}
-                              </div>
-                            </div>
-
-                            {/* Surrounding concepts */}
-                            {sampleConcepts.concepts.map((concept, index) => {
-                              const angle = (index / sampleConcepts.concepts.length) * 2 * Math.PI;
-                              const radius = 150;
-                              const x = Math.cos(angle) * radius;
-                              const y = Math.sin(angle) * radius;
+                          <div className="grid grid-cols-2 gap-3">
+                            {sampleConcepts.concepts.map((concept) => {
                               const isSelected = selectedConcept === concept.id;
-                              const hasConnection = userConnections.some(
+                              const connections = userConnections.filter(
                                 c => c.from === concept.id || c.to === concept.id
                               );
-
+                              
                               return (
                                 <motion.button
                                   key={concept.id}
                                   onClick={() => handleConceptClick(concept.id)}
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all z-30 ${
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className={`p-4 rounded-lg border-2 font-medium text-sm min-h-[80px] flex flex-col items-center justify-center gap-2 transition-all ${
                                     isSelected
-                                      ? "border-primary bg-primary text-primary-foreground shadow-lg scale-110"
-                                      : hasConnection
-                                      ? "border-success bg-success/20 text-success-foreground"
+                                      ? "border-primary bg-primary text-primary-foreground shadow-lg"
+                                      : connections.length > 0
+                                      ? "border-success bg-success/10"
                                       : "border-border bg-card hover:border-primary"
                                   }`}
-                                  style={{
-                                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                                  }}
                                 >
-                                  {concept.text}
+                                  <span>{concept.text}</span>
+                                  {connections.length > 0 && (
+                                    <span className="text-xs opacity-70">
+                                      {connections.length} {connections.length === 1 ? 'connection' : 'connections'}
+                                    </span>
+                                  )}
                                 </motion.button>
                               );
                             })}
                           </div>
 
                           {userConnections.length > 0 && (
-                            <Button
-                              variant="outline"
-                              onClick={() => setUserConnections([])}
-                              className="w-full"
-                            >
-                              Clear All Connections
-                            </Button>
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium">Your Connections:</p>
+                              <div className="space-y-1">
+                                {userConnections.map((conn, idx) => {
+                                  const fromConcept = sampleConcepts.concepts.find(c => c.id === conn.from);
+                                  const toConcept = sampleConcepts.concepts.find(c => c.id === conn.to);
+                                  const isCorrect = sampleConcepts.correctConnections.some(
+                                    c => (c.from === conn.from && c.to === conn.to) ||
+                                         (c.from === conn.to && c.to === conn.from)
+                                  );
+                                  
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className={`text-sm p-2 rounded border ${
+                                        isCorrect 
+                                          ? 'border-success bg-success/10 text-success-foreground' 
+                                          : 'border-muted bg-muted/50'
+                                      }`}
+                                    >
+                                      {fromConcept?.text} ↔ {toConcept?.text}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <Button
+                                variant="outline"
+                                onClick={() => setUserConnections([])}
+                                size="sm"
+                                className="w-full"
+                              >
+                                Clear All
+                              </Button>
+                            </div>
                           )}
                         </>
                       )}
