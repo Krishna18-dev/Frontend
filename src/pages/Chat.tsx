@@ -80,7 +80,17 @@ const Chat = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error("Error sending message:", error);
-      toast.error(error.message || "Failed to send message");
+      
+      // Check if it's an authentication error
+      if (error.message?.includes("Unauthorized") || error.message?.includes("401")) {
+        toast.error("Your session has expired. Please sign in again.");
+        // Redirect to auth page after a short delay
+        setTimeout(() => {
+          window.location.href = "/auth";
+        }, 2000);
+      } else {
+        toast.error(error.message || "Failed to send message");
+      }
       
       // Add error message to chat
       setMessages((prev) => [
