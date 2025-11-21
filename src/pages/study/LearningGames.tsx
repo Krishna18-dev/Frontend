@@ -68,6 +68,16 @@ const sampleQuiz = [
   },
 ];
 
+// Sample match game data
+const sampleMatchPairs = [
+  { term: "useState", definition: "Hook for managing component state" },
+  { term: "useEffect", definition: "Hook for side effects and lifecycle" },
+  { term: "Props", definition: "Data passed from parent to child" },
+  { term: "JSX", definition: "JavaScript XML syntax" },
+  { term: "Component", definition: "Reusable UI building block" },
+  { term: "Virtual DOM", definition: "In-memory representation of DOM" },
+];
+
 const LearningGames = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [customTopic, setCustomTopic] = useState("");
@@ -83,6 +93,13 @@ const LearningGames = () => {
   const [score, setScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
 
+  // Match game state
+  type MatchCard = { id: number; text: string; type: 'term' | 'definition'; pairId: number; matched: boolean };
+  const [matchCards, setMatchCards] = useState<MatchCard[]>([]);
+  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState(0);
+
   const startGame = () => {
     setGameStarted(true);
     setCurrentCard(0);
@@ -91,12 +108,43 @@ const LearningGames = () => {
     setSelectedAnswer(null);
     setScore(0);
     setQuizComplete(false);
+    
+    // Initialize match game
+    if (selectedGame === "match") {
+      const cards: MatchCard[] = [];
+      sampleMatchPairs.forEach((pair, index) => {
+        cards.push({
+          id: index * 2,
+          text: pair.term,
+          type: 'term',
+          pairId: index,
+          matched: false,
+        });
+        cards.push({
+          id: index * 2 + 1,
+          text: pair.definition,
+          type: 'definition',
+          pairId: index,
+          matched: false,
+        });
+      });
+      // Shuffle cards
+      const shuffled = cards.sort(() => Math.random() - 0.5);
+      setMatchCards(shuffled);
+      setSelectedCards([]);
+      setMatchedPairs([]);
+      setAttempts(0);
+    }
   };
 
   const closeGame = () => {
     setSelectedGame(null);
     setGameStarted(false);
     setCustomTopic("");
+    setMatchCards([]);
+    setSelectedCards([]);
+    setMatchedPairs([]);
+    setAttempts(0);
   };
 
   const handleFlipCard = () => {
@@ -133,6 +181,43 @@ const LearningGames = () => {
       setSelectedAnswer(null);
     } else {
       setQuizComplete(true);
+    }
+  };
+
+  const handleCardClick = (cardId: number) => {
+    const card = matchCards.find(c => c.id === cardId);
+    if (!card || card.matched || selectedCards.includes(cardId)) return;
+
+    const newSelected = [...selectedCards, cardId];
+    setSelectedCards(newSelected);
+
+    if (newSelected.length === 2) {
+      setAttempts(attempts + 1);
+      const [firstId, secondId] = newSelected;
+      const firstCard = matchCards.find(c => c.id === firstId);
+      const secondCard = matchCards.find(c => c.id === secondId);
+
+      if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+        // Match found!
+        setMatchedPairs([...matchedPairs, firstCard.pairId]);
+        setMatchCards(matchCards.map(c => 
+          c.pairId === firstCard.pairId ? { ...c, matched: true } : c
+        ));
+        toast.success("Match found!");
+        setSelectedCards([]);
+
+        // Check if game is complete
+        if (matchedPairs.length + 1 === sampleMatchPairs.length) {
+          setTimeout(() => {
+            toast.success(`Game complete! ${attempts + 1} attempts`);
+          }, 500);
+        }
+      } else {
+        // No match
+        setTimeout(() => {
+          setSelectedCards([]);
+        }, 1000);
+      }
     }
   };
 
@@ -377,8 +462,58 @@ const LearningGames = () => {
                   {selectedGame === "flashcards" && renderFlashcardsGame()}
                   {selectedGame === "quiz" && renderQuizGame()}
                   {selectedGame === "match" && (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Match game coming soon!</p>
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">
+                          Matched: {matchedPairs.length} / {sampleMatchPairs.length}
+                        </span>
+                        <span className="text-sm font-medium">Attempts: {attempts}</span>
+                      </div>
+                      <Progress value={(matchedPairs.length / sampleMatchPairs.length) * 100} className="h-2" />
+
+                      {matchedPairs.length === sampleMatchPairs.length ? (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="text-center space-y-4 py-8"
+                        >
+                          <Trophy className="h-16 w-16 text-primary mx-auto" />
+                          <h3 className="text-2xl font-bold">Congratulations!</h3>
+                          <p className="text-lg text-muted-foreground">
+                            You completed the match game in {attempts} attempts!
+                          </p>
+                          <div className="flex gap-3">
+                            <Button variant="outline" onClick={closeGame} className="flex-1">
+                              Close
+                            </Button>
+                            <Button onClick={startGame} className="flex-1">
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Play Again
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {matchCards.map((card) => (
+                            <motion.button
+                              key={card.id}
+                              onClick={() => handleCardClick(card.id)}
+                              disabled={card.matched || selectedCards.includes(card.id)}
+                              whileHover={{ scale: card.matched ? 1 : 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className={`p-4 rounded-lg border-2 text-sm font-medium min-h-[100px] flex items-center justify-center text-center transition-all ${
+                                card.matched
+                                  ? "border-success bg-success/10 opacity-50"
+                                  : selectedCards.includes(card.id)
+                                  ? "border-primary bg-primary/10 scale-105"
+                                  : "border-border hover:border-primary bg-card"
+                              } ${card.type === 'term' ? 'font-semibold' : 'font-normal'}`}
+                            >
+                              {card.text}
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                   {selectedGame === "concept" && (
