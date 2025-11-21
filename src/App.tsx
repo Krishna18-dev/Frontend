@@ -2,13 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Header } from "@/components/Layout/Header";
 import { Footer } from "@/components/Layout/Footer";
 import { StudyLayout } from "@/components/StudyLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AnimatePresence, motion } from "framer-motion";
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
 import Learn from "./pages/Learn";
@@ -29,6 +30,247 @@ import LearningGames from "./pages/study/LearningGames";
 
 const queryClient = new QueryClient();
 
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public routes with header/footer */}
+        <Route
+          path="/"
+          element={
+            <PageWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  <Home />
+                </main>
+                <Footer />
+              </div>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/tools"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <Tools />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/learn"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <Learn />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <Chat />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <Dashboard />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mock-interview"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <MockInterview />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/roadmap"
+          element={
+            <ProtectedRoute>
+              <PageWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    <Roadmap />
+                  </main>
+                  <Footer />
+                </div>
+              </PageWrapper>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/faq"
+          element={
+            <PageWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  <FAQ />
+                </main>
+                <Footer />
+              </div>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/legal/privacy"
+          element={
+            <PageWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  <Privacy />
+                </main>
+                <Footer />
+              </div>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/auth"
+          element={
+            <PageWrapper>
+              <Auth />
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <PageWrapper>
+              <Onboarding />
+            </PageWrapper>
+          }
+        />
+
+        {/* Study routes with sidebar (protected) */}
+        <Route
+          path="/study/chat"
+          element={
+            <PageWrapper>
+              <StudyLayout>
+                <ChatPage />
+              </StudyLayout>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/study/content"
+          element={
+            <PageWrapper>
+              <StudyLayout>
+                <ContentGenerator />
+              </StudyLayout>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/study/interview"
+          element={
+            <PageWrapper>
+              <StudyLayout>
+                <Interview />
+              </StudyLayout>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/study/games"
+          element={
+            <PageWrapper>
+              <StudyLayout>
+                <LearningGames />
+              </StudyLayout>
+            </PageWrapper>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PageWrapper>
+              <StudyLayout>
+                <Profile />
+              </StudyLayout>
+            </PageWrapper>
+          }
+        />
+
+        {/* Catch-all route */}
+        <Route
+          path="*"
+          element={
+            <PageWrapper>
+              <NotFound />
+            </PageWrapper>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark">
@@ -37,176 +279,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              {/* Public routes with header/footer */}
-              <Route
-                path="/"
-                element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Home />
-                    </main>
-                    <Footer />
-                  </div>
-                }
-              />
-              <Route
-                path="/tools"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <Tools />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/learn"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <Learn />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chat"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <Chat />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <Dashboard />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mock-interview"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <MockInterview />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/roadmap"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col min-h-screen">
-                      <Header />
-                      <main className="flex-1">
-                        <Roadmap />
-                      </main>
-                      <Footer />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/faq"
-                element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <FAQ />
-                    </main>
-                    <Footer />
-                  </div>
-                }
-              />
-              <Route
-                path="/legal/privacy"
-                element={
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-1">
-                      <Privacy />
-                    </main>
-                    <Footer />
-                  </div>
-                }
-              />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-
-              {/* Study routes with sidebar (protected) */}
-              <Route
-                path="/study/chat"
-                element={
-                  <StudyLayout>
-                    <ChatPage />
-                  </StudyLayout>
-                }
-              />
-              <Route
-                path="/study/content"
-                element={
-                  <StudyLayout>
-                    <ContentGenerator />
-                  </StudyLayout>
-                }
-              />
-              <Route
-                path="/study/interview"
-                element={
-                  <StudyLayout>
-                    <Interview />
-                  </StudyLayout>
-                }
-              />
-              <Route
-                path="/study/games"
-                element={
-                  <StudyLayout>
-                    <LearningGames />
-                  </StudyLayout>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <StudyLayout>
-                    <Profile />
-                  </StudyLayout>
-                }
-              />
-
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
