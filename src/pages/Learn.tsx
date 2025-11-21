@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, BookOpen, Code, Palette, Zap, CheckCircle2, Search, Play, Clock, Users, ExternalLink } from "lucide-react";
+import { GraduationCap, BookOpen, Code, Palette, Zap, CheckCircle2, Search, Play, Clock, Users, ExternalLink, Loader2, Youtube } from "lucide-react";
 import { mockCategories } from "@/lib/mockData";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface LearningTask {
   id: string;
@@ -28,6 +30,15 @@ interface YouTubeCourse {
   url: string;
   category: string[];
   level: "Beginner" | "Intermediate" | "Advanced";
+}
+
+interface YouTubeSearchResult {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  channelTitle: string;
+  url: string;
 }
 
 const learningTasks: Record<string, LearningTask[]> = {
@@ -302,6 +313,9 @@ const Learn = () => {
   const [selectedCategory, setSelectedCategory] = useState("creativity");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourseCategory, setSelectedCourseCategory] = useState<string | null>(null);
+  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
+  const [youtubeResults, setYoutubeResults] = useState<YouTubeSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const categoryIcons: Record<string, any> = {
     creativity: Palette,
@@ -325,6 +339,35 @@ const Learn = () => {
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCourseCategory]);
+
+  const handleYouTubeSearch = async () => {
+    if (!youtubeSearchQuery.trim()) {
+      toast.error("Please enter a search query");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("youtube-search", {
+        body: { query: youtubeSearchQuery, maxResults: 12 },
+      });
+
+      if (error) throw error;
+
+      setYoutubeResults(data.videos);
+      
+      if (data.videos.length === 0) {
+        toast.info("No videos found. Try a different search term.");
+      } else {
+        toast.success(`Found ${data.videos.length} videos`);
+      }
+    } catch (error: any) {
+      console.error("Error searching YouTube:", error);
+      toast.error(error.message || "Failed to search YouTube");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const courseCategories = [
     { id: "all", name: "All Courses" },
@@ -477,8 +520,89 @@ const Learn = () => {
 
           {/* YouTube Courses Tab */}
           <TabsContent value="courses" className="space-y-8">
+            {/* YouTube Search */}
+            <Card className="p-6 bg-gradient-to-r from-primary/5 to-primary-glow/5 border-primary/20">
+              <div className="flex items-center gap-3 mb-4">
+                <Youtube className="h-6 w-6 text-red-500" />
+                <h3 className="text-lg font-semibold">Search YouTube for Learning Videos</h3>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={youtubeSearchQuery}
+                  onChange={(e) => setYoutubeSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleYouTubeSearch()}
+                  placeholder="e.g., React tutorial, Machine Learning basics..."
+                  disabled={isSearching}
+                  className="flex-1"
+                />
+                <Button onClick={handleYouTubeSearch} disabled={isSearching || !youtubeSearchQuery.trim()}>
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+
+            {/* YouTube Search Results */}
+            {youtubeResults.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Search Results ({youtubeResults.length})</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {youtubeResults.map((video) => (
+                    <motion.div
+                      key={video.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group h-full flex flex-col">
+                        <div className="relative aspect-video overflow-hidden bg-muted">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Play className="w-16 h-16 text-white" />
+                          </div>
+                        </div>
+                        <div className="p-4 space-y-3 flex-1 flex flex-col">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                              {video.title}
+                            </h3>
+                            <p className="text-xs text-muted-foreground mb-2">{video.channelTitle}</p>
+                            <p className="text-xs text-foreground/70 line-clamp-2">{video.description}</p>
+                          </div>
+                          <Button
+                            variant="gradient"
+                            size="sm"
+                            className="w-full"
+                            asChild
+                          >
+                            <a href={video.url} target="_blank" rel="noopener noreferrer">
+                              <Play className="mr-2 h-3 w-3" />
+                              Watch Now
+                            </a>
+                          </Button>
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Search and Filters */}
             <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Curated Courses</h3>
               <div className="relative max-w-2xl mx-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
