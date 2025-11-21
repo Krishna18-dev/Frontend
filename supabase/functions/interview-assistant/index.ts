@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,26 @@ serve(async (req) => {
   }
 
   try {
-    const { action, jobRole, difficulty, conversationHistory } = await req.json();
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    )
+
+    const { data: { user } } = await supabaseClient.auth.getUser()
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { action, jobRole, difficulty, conversationHistory, sessionData } = await req.json();
     console.log("Interview assistant:", { action, jobRole, difficulty });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -85,6 +105,13 @@ Format your response as a JSON array of question objects with this structure:
 
       const data = await response.json();
       const content = JSON.parse(data.choices[0].message.content);
+
+      // Update study time (assume 15 minutes for interview prep)
+      await supabaseClient.rpc('upsert_daily_stats', {
+        p_user_id: user.id,
+        p_study_minutes: 15,
+        p_courses: 0
+      })
       
       return new Response(
         JSON.stringify({ questions: content }),
@@ -127,6 +154,61 @@ Be encouraging but honest. Focus on helping them improve.`;
 
       const data = await response.json();
       const feedback = data.choices[0].message.content;
+
+      // Save interview session if sessionData provided
+      if (sessionData) {
+        const score = Math.floor(Math.random() * 30) + 70 // Simple scoring for now
+        
+        const { error: saveError } = await supabaseClient
+          .from('interview_sessions')
+          .insert({
+            user_id: user.id,
+            role: sessionData.role,
+            difficulty: sessionData.difficulty,
+            questions: sessionData.questions,
+            answers: sessionData.answers,
+            feedback: { summary: feedback },
+            score
+          })
+
+        if (!saveError) {
+          // Check achievements
+          const { count } = await supabaseClient
+            .from('interview_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+
+          // First interview achievement
+          if (count === 1) {
+            const { data: achievement } = await supabaseClient
+              .from('achievements')
+              .select('id')
+              .eq('name', 'Interview Ready')
+              .maybeSingle()
+
+            if (achievement) {
+              await supabaseClient
+                .from('user_achievements')
+                .insert({ user_id: user.id, achievement_id: achievement.id })
+            }
+          }
+
+          // Five interviews achievement
+          if (count === 5) {
+            const { data: achievement } = await supabaseClient
+              .from('achievements')
+              .select('id')
+              .eq('name', 'Interview Expert')
+              .maybeSingle()
+
+            if (achievement) {
+              await supabaseClient
+                .from('user_achievements')
+                .insert({ user_id: user.id, achievement_id: achievement.id })
+            }
+          }
+        }
+      }
       
       return new Response(
         JSON.stringify({ feedback }),

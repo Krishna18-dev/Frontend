@@ -13,6 +13,7 @@ import {
   BookOpen,
   Target,
   Sparkles,
+  Bell,
 } from "lucide-react";
 import { mockSavedWorks } from "@/lib/mockData";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +21,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { AchievementsWidget } from "@/components/Dashboard/AchievementsWidget";
+import { StatisticsChart } from "@/components/Dashboard/StatisticsChart";
+import { RecentActivity } from "@/components/Dashboard/RecentActivity";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -27,10 +31,12 @@ const Dashboard = () => {
   const savedWorks = mockSavedWorks;
   const [profile, setProfile] = useState<{ full_name: string; learning_goals: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalAchievements, setTotalAchievements] = useState(0);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchAchievementsCount();
     }
   }, [user]);
 
@@ -49,6 +55,19 @@ const Dashboard = () => {
       toast.error("Failed to load profile data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAchievementsCount = async () => {
+    try {
+      const { count } = await supabase
+        .from("user_achievements")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", user?.id);
+      
+      setTotalAchievements(count || 0);
+    } catch (error) {
+      console.error("Error fetching achievements count:", error);
     }
   };
 
@@ -126,14 +145,20 @@ const Dashboard = () => {
                   <Trophy className="h-4 w-4 text-yellow-500" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-display font-bold">3</p>
+              <p className="text-2xl sm:text-3xl font-display font-bold">{totalAchievements}</p>
               <p className="text-xs text-muted-foreground">Achievements</p>
             </div>
           </Card>
         </div>
 
+        {/* Statistics and Achievements Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <StatisticsChart />
+          <AchievementsWidget />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content - Saved Work */}
+          {/* Main Content - Saved Work and Recent Activity */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold">Your Projects</h2>
@@ -200,6 +225,9 @@ const Dashboard = () => {
                 </Card>
               )}
             </div>
+
+            {/* Recent Activity */}
+            <RecentActivity />
           </div>
 
           {/* Sidebar */}
