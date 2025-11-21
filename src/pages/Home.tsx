@@ -140,7 +140,7 @@ const Home = () => {
                 </motion.div>
               )}
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 font-semibold px-8" asChild>
+                <Button size="lg" variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border border-white/30 font-semibold px-8 backdrop-blur-sm" asChild>
                   <Link to="/learn">
                     <Play className="mr-2 h-5 w-5" />
                     Explore Courses
