@@ -83,7 +83,16 @@ const ContentGenerator = () => {
       toast.success(saveToLibrary ? "Content generated and saved to library!" : "Content generated successfully!");
     } catch (error: any) {
       console.error("Error generating content:", error);
-      toast.error(error.message || "Failed to generate content");
+      
+      // Check if it's an authentication error
+      if (error.message?.includes("Unauthorized") || error.message?.includes("401")) {
+        toast.error("Your session has expired. Please sign in again.");
+        setTimeout(() => {
+          window.location.href = "/auth";
+        }, 2000);
+      } else {
+        toast.error(error.message || "Failed to generate content");
+      }
     } finally {
       setGenerating(false);
     }
