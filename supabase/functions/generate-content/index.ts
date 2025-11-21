@@ -23,13 +23,11 @@ serve(async (req) => {
       }
     )
 
-    const { data: { user } } = await supabaseClient.auth.getUser()
+    const { data: authData, error: authError } = await supabaseClient.auth.getUser()
+    const user = authData?.user ?? null
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    if (authError) {
+      console.error('Error getting user in generate-content:', authError.message)
     }
 
     const { contentType, topic, details, saveToLibrary } = await req.json();
@@ -97,8 +95,8 @@ serve(async (req) => {
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const geminiData = await response.json();
+    const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!content) {
       throw new Error("No content generated from Gemini API");
@@ -107,7 +105,7 @@ serve(async (req) => {
     console.log("Content generated successfully");
 
     // Save to library if requested
-    if (saveToLibrary) {
+    if (saveToLibrary && user) {
       const { error: saveError } = await supabaseClient
         .from('saved_content')
         .insert({
@@ -141,14 +139,18 @@ serve(async (req) => {
           }
         }
       }
+    } else if (saveToLibrary && !user) {
+      console.warn('Save to library requested but no authenticated user; skipping save')
     }
 
     // Update study time statistics (assume 5 minutes per generation)
-    await supabaseClient.rpc('upsert_daily_stats', {
-      p_user_id: user.id,
-      p_study_minutes: 5,
-      p_courses: 0
-    })
+    if (user) {
+      await supabaseClient.rpc('upsert_daily_stats', {
+        p_user_id: user.id,
+        p_study_minutes: 5,
+        p_courses: 0
+      })
+    }
 
     return new Response(
       JSON.stringify({ content }),
