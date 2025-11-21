@@ -10,6 +10,9 @@ import {
   Clock,
   ExternalLink,
   Trash2,
+  BookOpen,
+  Target,
+  Sparkles,
 } from "lucide-react";
 import { mockSavedWorks, mockUserProfile } from "@/lib/mockData";
 
@@ -30,115 +33,110 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-12 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-2">
-            Welcome back,{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
-              {profile.name}
-            </span>
+        <div className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">
+            Welcome back, <span className="text-primary">{profile.name}</span>
           </h1>
-          <p className="text-muted-foreground">
-            Here's your learning progress and saved work
+          <p className="text-muted-foreground text-lg">
+            Continue your learning journey and track your progress
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Projects</p>
-                <p className="text-3xl font-bold">{savedWorks.length}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <Card className="p-4 sm:p-6 border hover:shadow-md transition-all">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-medium">Projects</p>
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Bookmark className="h-4 w-4 text-primary" />
+                </div>
               </div>
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Bookmark className="h-6 w-6 text-primary" />
-              </div>
+              <p className="text-2xl sm:text-3xl font-display font-bold">{savedWorks.length}</p>
+              <p className="text-xs text-muted-foreground">Active projects</p>
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Skills Learned</p>
-                <p className="text-3xl font-bold">{profile.skills.length}</p>
+          <Card className="p-4 sm:p-6 border hover:shadow-md transition-all">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-medium">Skills</p>
+                <div className="p-2 rounded-lg bg-success/10">
+                  <TrendingUp className="h-4 w-4 text-success" />
+                </div>
               </div>
-              <div className="p-3 rounded-xl bg-primary-glow/10">
-                <TrendingUp className="h-6 w-6 text-primary-glow" />
-              </div>
+              <p className="text-2xl sm:text-3xl font-display font-bold">{profile.skills.length}</p>
+              <p className="text-xs text-muted-foreground">Skills mastered</p>
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Learning Streak</p>
-                <p className="text-3xl font-bold">7 days</p>
+          <Card className="p-4 sm:p-6 border hover:shadow-md transition-all">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-medium">Streak</p>
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <Calendar className="h-4 w-4 text-accent" />
+                </div>
               </div>
-              <div className="p-3 rounded-xl bg-accent/10">
-                <Calendar className="h-6 w-6 text-accent" />
-              </div>
+              <p className="text-2xl sm:text-3xl font-display font-bold">7</p>
+              <p className="text-xs text-muted-foreground">Day streak</p>
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Badges Earned</p>
-                <p className="text-3xl font-bold">3</p>
+          <Card className="p-4 sm:p-6 border hover:shadow-md transition-all">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-medium">Badges</p>
+                <div className="p-2 rounded-lg bg-yellow-500/10">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                </div>
               </div>
-              <div className="p-3 rounded-xl bg-yellow-500/10">
-                <Trophy className="h-6 w-6 text-yellow-500" />
-              </div>
+              <p className="text-2xl sm:text-3xl font-display font-bold">3</p>
+              <p className="text-xs text-muted-foreground">Achievements</p>
             </div>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Saved Work */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content - Saved Work */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Saved Work</h2>
+              <h2 className="text-2xl font-display font-bold">Your Projects</h2>
               <Button variant="outline" size="sm">
                 View All
               </Button>
             </div>
 
             <div className="space-y-4">
-              {savedWorks.map((work, index) => (
-                <Card
-                  key={work.id}
-                  className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
+              {savedWorks.map((work) => (
+                <Card key={work.id} className="p-6 border hover:shadow-md transition-all">
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{work.title}</h3>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-lg mb-1 truncate">{work.title}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>
-                            Last modified: {formatDate(work.metadata.lastModified)}
-                          </span>
+                          <Clock className="h-4 w-4 flex-shrink-0" />
+                          <span>Last modified: {formatDate(work.metadata.lastModified)}</span>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="capitalize">
+                      <Badge variant="secondary" className="capitalize flex-shrink-0">
                         {work.tool}
                       </Badge>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{work.progress}%</span>
+                        <span className="text-muted-foreground font-medium">Progress</span>
+                        <span className="font-semibold">{work.progress}%</span>
                       </div>
                       <Progress value={work.progress} className="h-2" />
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="gradient" size="sm" className="flex-1">
+                      <Button size="sm" className="flex-1">
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Continue
                       </Button>
@@ -154,13 +152,19 @@ const Dashboard = () => {
               ))}
 
               {savedWorks.length === 0 && (
-                <Card className="p-12 text-center">
-                  <Bookmark className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="font-semibold mb-2">No saved work yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Start creating projects with AI tools
-                  </p>
-                  <Button variant="gradient">Explore Tools</Button>
+                <Card className="p-12 text-center border-dashed">
+                  <div className="max-w-sm mx-auto space-y-4">
+                    <div className="p-4 rounded-full bg-muted/50 w-fit mx-auto">
+                      <Bookmark className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-2">No projects yet</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Start creating amazing projects with AI tools
+                      </p>
+                    </div>
+                    <Button>Explore Tools</Button>
+                  </div>
                 </Card>
               )}
             </div>
@@ -168,10 +172,32 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Skills */}
-            <Card className="p-6">
+            {/* Quick Actions */}
+            <Card className="p-6 border">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-primary" />
+                Quick Actions
+              </h3>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Start New Course
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Target className="mr-2 h-4 w-4" />
+                  Practice Skills
+                </Button>
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  View Schedule
+                </Button>
+              </div>
+            </Card>
+
+            {/* Skills */}
+            <Card className="p-6 border">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-success" />
                 Your Skills
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -183,59 +209,36 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Goals */}
-            <Card className="p-6">
+            {/* Learning Goals */}
+            <Card className="p-6 border">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-accent" />
-                Goals
+                <Target className="h-5 w-5 text-primary" />
+                Learning Goals
               </h3>
               <ul className="space-y-3">
                 {profile.goals.map((goal, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <div className="mt-1 h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0" />
-                    <span>{goal}</span>
+                  <li key={index} className="flex items-start gap-3">
+                    <div className="mt-1.5 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                    <span className="text-sm text-foreground">{goal}</span>
                   </li>
                 ))}
               </ul>
             </Card>
 
-            {/* AI Weekly Suggestions */}
-            <Card className="p-6 bg-gradient-primary text-white">
-              <h3 className="font-semibold mb-2">AI Weekly Suggestions</h3>
-              <p className="text-sm opacity-90 mb-4">
-                Based on your learning path, we recommend trying out video editing
-                with InVideo.ai this week!
-              </p>
-              <Button variant="secondary" size="sm" className="w-full">
-                Get Started
-              </Button>
-            </Card>
-
-            {/* Badges */}
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
-                Recent Badges
-              </h3>
+            {/* AI Recommendation */}
+            <Card className="p-6 bg-gradient-primary text-white border-0">
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
-                  <div className="h-10 w-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                    🎉
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">First Presentation</p>
-                    <p className="text-xs text-muted-foreground">2 days ago</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  <h3 className="font-semibold">Recommended for You</h3>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
-                  <div className="h-10 w-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                    🔥
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">7 Day Streak</p>
-                    <p className="text-xs text-muted-foreground">Today</p>
-                  </div>
-                </div>
+                <p className="text-sm text-white/90 leading-relaxed">
+                  Based on your progress, we suggest exploring advanced video editing 
+                  techniques this week!
+                </p>
+                <Button variant="secondary" size="sm" className="w-full">
+                  Explore Now
+                </Button>
               </div>
             </Card>
           </div>

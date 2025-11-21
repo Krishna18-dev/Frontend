@@ -4,91 +4,106 @@
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
+Professional design system inspired by Udemy/Coursera
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 235 15% 15%;
+    /* Clean professional backgrounds */
+    --background: 0 0% 99%;
+    --foreground: 220 15% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 235 15% 15%;
+    --card-foreground: 220 15% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 235 15% 15%;
+    --popover-foreground: 220 15% 20%;
 
-    --primary: 235 65% 60%;
+    /* Professional purple - similar to educational platforms */
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 180 65% 55%;
+    --primary-hover: 262 83% 50%;
+    
+    /* Success green for educational progress */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 235 15% 15%;
+    /* Clean secondary colors */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 20%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 35 90% 60%;
+    /* Professional accent - course highlights */
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 235 65% 60%;
+    /* Subtle borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262 83% 58%;
 
-    --radius: 1rem;
+    --radius: 0.5rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(235, 65%, 60%), hsl(180, 65%, 55%));
-    --gradient-warm: linear-gradient(135deg, hsl(35, 90%, 60%), hsl(25, 85%, 55%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(240, 10%, 98%));
+    /* Professional gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(262, 90%, 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(245, 90%, 65%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 20%, 99%));
 
-    --shadow-sm: 0 2px 8px -2px hsl(235 65% 60% / 0.1);
-    --shadow-md: 0 8px 20px -4px hsl(235 65% 60% / 0.15);
-    --shadow-lg: 0 16px 40px -8px hsl(235 65% 60% / 0.2);
-    --shadow-glow: 0 0 40px hsl(180 65% 55% / 0.3);
+    /* Clean professional shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1);
 
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 235 20% 8%;
-    --foreground: 0 0% 98%;
+    --background: 220 26% 14%;
+    --foreground: 220 14% 96%;
 
-    --card: 235 18% 12%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 24% 18%;
+    --card-foreground: 220 14% 96%;
 
-    --popover: 235 18% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 24% 18%;
+    --popover-foreground: 220 14% 96%;
 
-    --primary: 235 65% 65%;
+    --primary: 262 83% 63%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 180 65% 60%;
+    --primary-hover: 262 83% 55%;
+    
+    --success: 142 76% 40%;
+    --success-foreground: 0 0% 100%;
 
-    --secondary: 235 15% 15%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 220 14% 96%;
 
-    --muted: 235 15% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 220 20% 20%;
+    --muted-foreground: 220 9% 70%;
 
-    --accent: 35 90% 65%;
+    --accent: 25 95% 58%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 235 15% 20%;
-    --input: 235 15% 20%;
-    --ring: 235 65% 65%;
+    --border: 220 20% 25%;
+    --input: 220 20% 25%;
+    --ring: 262 83% 63%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(235, 65%, 65%), hsl(180, 65%, 60%));
-    --gradient-warm: linear-gradient(135deg, hsl(35, 90%, 65%), hsl(25, 85%, 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(235, 20%, 8%), hsl(235, 18%, 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 63%), hsl(262, 90%, 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(262, 83%, 63%) 0%, hsl(245, 90%, 70%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(220, 24%, 18%), hsl(220, 22%, 20%));
 
-    --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 8px 20px -4px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 40px hsl(180 65% 60% / 0.2);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6);
   }
 }
 
@@ -98,6 +113,30 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+}
+
+@layer utilities {
+  .bg-grid-white {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   }
 }
