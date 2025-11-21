@@ -35,9 +35,9 @@ serve(async (req) => {
     const { contentType, topic, details, saveToLibrary } = await req.json();
     console.log("Generating content:", { contentType, topic, details, saveToLibrary });
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
 
     const systemPrompts: Record<string, string> = {
@@ -49,7 +49,7 @@ serve(async (req) => {
       "research": "You are an academic writing expert. Create a research paper outline with sections, key points, and suggested references.",
     };
 
-    const userPrompts: Record<string, string> = {
+    const prompts: Record<string, string> = {
       "lecture-notes": `Create comprehensive lecture notes on: ${topic}\n\nAdditional context: ${details || "None"}`,
       "roadmap": `Create a learning roadmap for: ${topic}\n\nAdditional details: ${details || "None"}`,
       "timetable": `Create a study timetable for: ${topic}\n\nAdditional details: ${details || "None"}`,
@@ -58,25 +58,34 @@ serve(async (req) => {
       "research": `Create a research paper outline on: ${topic}\n\nAdditional details: ${details || "None"}`,
     };
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompts[contentType] || "You are a helpful educational assistant." },
-          { role: "user", content: userPrompts[contentType] || `Create content about: ${topic}` },
-        ],
-        temperature: 0.7,
-      }),
-    });
+    const systemInstruction = systemPrompts[contentType] || "You are a helpful educational assistant.";
+    const userPrompt = prompts[contentType] || `Create content about: ${topic}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          contents: [{
+            parts: [{ text: userPrompt }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI Gateway error:", response.status, errorText);
+      console.error("Gemini API error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -84,19 +93,16 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
 
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!content) {
+      throw new Error("No content generated from Gemini API");
+    }
     
     console.log("Content generated successfully");
 
