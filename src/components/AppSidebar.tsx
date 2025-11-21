@@ -39,13 +39,13 @@ export function AppSidebar() {
             <span>Back to Dashboard</span>
           </Link>
         )}
-        <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+          <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="p-2 rounded-lg bg-primary text-primary-foreground">
             <MessageSquare className="h-5 w-5" />
           </div>
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
-              <h2 className="font-semibold text-sm">AI Study Companion</h2>
+              <h2 className="font-semibold text-sm">Ascendia Study</h2>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
           )}

@@ -97,7 +97,7 @@ const Home = () => {
           >
             <motion.div variants={itemVariants}>
               <Badge variant="secondary" className="bg-white/10 text-white border-white/20 px-4 py-2 text-sm font-medium">
-                Welcome to the Future of Learning
+                Welcome to Ascendia
               </Badge>
             </motion.div>
             
@@ -105,9 +105,9 @@ const Home = () => {
               variants={itemVariants}
               className="font-display font-bold text-white leading-tight"
             >
-              Learn with AI-Powered
+              Ascend to Excellence with
               <br />
-              <span className="text-white/90">Study Tools</span>
+              <span className="text-white/90">AI-Powered Learning</span>
             </motion.h1>
             
             <motion.p
@@ -185,7 +185,7 @@ const Home = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="font-display font-bold mb-4">
-              Why Choose AI StudyHub
+              Why Choose Ascendia
             </h2>
             <p className="text-lg text-muted-foreground">
               Everything you need to accelerate your learning journey and achieve your goals.
