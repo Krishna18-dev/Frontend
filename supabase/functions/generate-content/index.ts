@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,8 +13,27 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, topic, details } = await req.json();
-    console.log("Generating content:", { contentType, topic, details });
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    )
+
+    const { data: { user } } = await supabaseClient.auth.getUser()
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { contentType, topic, details, saveToLibrary } = await req.json();
+    console.log("Generating content:", { contentType, topic, details, saveToLibrary });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -79,6 +99,50 @@ serve(async (req) => {
     const content = data.choices[0].message.content;
     
     console.log("Content generated successfully");
+
+    // Save to library if requested
+    if (saveToLibrary) {
+      const { error: saveError } = await supabaseClient
+        .from('saved_content')
+        .insert({
+          user_id: user.id,
+          content_type: contentType,
+          topic,
+          content,
+          metadata: { details }
+        })
+
+      if (saveError) {
+        console.error('Error saving content:', saveError)
+      } else {
+        // Check if this is user's first content - award achievement
+        const { count } = await supabaseClient
+          .from('saved_content')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+
+        if (count === 1) {
+          const { data: achievement } = await supabaseClient
+            .from('achievements')
+            .select('id')
+            .eq('name', 'Content Creator')
+            .maybeSingle()
+
+          if (achievement) {
+            await supabaseClient
+              .from('user_achievements')
+              .insert({ user_id: user.id, achievement_id: achievement.id })
+          }
+        }
+      }
+    }
+
+    // Update study time statistics (assume 5 minutes per generation)
+    await supabaseClient.rpc('upsert_daily_stats', {
+      p_user_id: user.id,
+      p_study_minutes: 5,
+      p_courses: 0
+    })
 
     return new Response(
       JSON.stringify({ content }),

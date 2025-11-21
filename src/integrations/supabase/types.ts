@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          points: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          points?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points?: number | null
+        }
+        Relationships: []
+      }
+      game_progress: {
+        Row: {
+          difficulty: string
+          game_type: string
+          id: string
+          metadata: Json | null
+          played_at: string | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          difficulty: string
+          game_type: string
+          id?: string
+          metadata?: Json | null
+          played_at?: string | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          difficulty?: string
+          game_type?: string
+          id?: string
+          metadata?: Json | null
+          played_at?: string | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interview_sessions: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          difficulty: string
+          feedback: Json | null
+          id: string
+          questions: Json
+          role: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          completed_at?: string | null
+          difficulty: string
+          feedback?: Json | null
+          id?: string
+          questions: Json
+          role: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          difficulty?: string
+          feedback?: Json | null
+          id?: string
+          questions?: Json
+          role?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,12 +140,138 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_content: {
+        Row: {
+          content: string
+          content_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          content_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_reminders: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_completed: boolean | null
+          reminder_date: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          reminder_date: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          reminder_date?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_statistics: {
+        Row: {
+          courses_completed: number | null
+          created_at: string | null
+          date: string
+          id: string
+          study_time_minutes: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          courses_completed?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          study_time_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          courses_completed?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          study_time_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_daily_stats: {
+        Args: {
+          p_courses?: number
+          p_study_minutes?: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

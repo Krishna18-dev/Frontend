@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const contentTypes = [
   {
@@ -58,6 +60,7 @@ const ContentGenerator = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [topic, setTopic] = useState("");
   const [details, setDetails] = useState("");
+  const [saveToLibrary, setSaveToLibrary] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState("");
   const [copied, setCopied] = useState(false);
@@ -70,32 +73,17 @@ const ContentGenerator = () => {
 
     setGenerating(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-content`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contentType: selectedType,
-            topic,
-            details,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke("generate-content", {
+        body: { contentType: selectedType, topic, details, saveToLibrary },
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to generate content");
-      }
+      if (error) throw error;
 
-      const data = await response.json();
       setGeneratedContent(data.content);
-      toast.success("Content generated successfully!");
-    } catch (error) {
+      toast.success(saveToLibrary ? "Content generated and saved to library!" : "Content generated successfully!");
+    } catch (error: any) {
       console.error("Error generating content:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to generate content");
+      toast.error(error.message || "Failed to generate content");
     } finally {
       setGenerating(false);
     }
@@ -192,6 +180,20 @@ const ContentGenerator = () => {
                     onChange={(e) => setDetails(e.target.value)}
                     rows={4}
                   />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="saveToLibrary"
+                    checked={saveToLibrary}
+                    onCheckedChange={(checked) => setSaveToLibrary(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="saveToLibrary"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Save to my library for later access
+                  </label>
                 </div>
 
                 <Button
