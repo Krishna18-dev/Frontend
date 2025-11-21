@@ -20,7 +20,7 @@ export const Header = () => {
               <GraduationCap className="h-5 w-5" />
             </div>
             <span className="text-xl font-display font-bold">
-              AI StudyHub
+              Ascendia
             </span>
           </Link>
 
@@ -28,19 +28,25 @@ export const Header = () => {
           {user && (
             <div className="hidden md:flex items-center gap-1">
               <Button variant="ghost" size="sm" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
                 <Link to="/tools">AI Tools</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/learn">Learn</Link>
+                <Link to="/learn">Courses</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/roadmap">Roadmap</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/study/chat">Study Companion</Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/chat">AI Mentor</Link>
+                <Link to="/profile">
+                  <User className="h-4 w-4 mr-1" />
+                  Profile
+                </Link>
               </Button>
             </div>
           )}
@@ -60,18 +66,10 @@ export const Header = () => {
               )}
             </Button>
             {user ? (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/profile">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={signOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
             ) : (
               <Button variant="default" size="sm" asChild>
                 <Link to="/auth">Get Started</Link>
@@ -101,13 +99,18 @@ export const Header = () => {
               {user && (
                 <>
                   <Button variant="ghost" className="justify-start" asChild>
+                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" className="justify-start" asChild>
                     <Link to="/tools" onClick={() => setIsMenuOpen(false)}>
                       AI Tools
                     </Link>
                   </Button>
                   <Button variant="ghost" className="justify-start" asChild>
                     <Link to="/learn" onClick={() => setIsMenuOpen(false)}>
-                      Learn
+                      Courses
                     </Link>
                   </Button>
                   <Button variant="ghost" className="justify-start" asChild>
@@ -116,13 +119,14 @@ export const Header = () => {
                     </Link>
                   </Button>
                   <Button variant="ghost" className="justify-start" asChild>
-                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                      Dashboard
+                    <Link to="/study/chat" onClick={() => setIsMenuOpen(false)}>
+                      Study Companion
                     </Link>
                   </Button>
                   <Button variant="ghost" className="justify-start" asChild>
-                    <Link to="/chat" onClick={() => setIsMenuOpen(false)}>
-                      AI Mentor
+                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
                     </Link>
                   </Button>
                 </>
@@ -148,26 +152,18 @@ export const Header = () => {
                   )}
                 </Button>
                 {user ? (
-                  <>
-                    <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1" 
-                      onClick={() => {
-                        signOut();
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </Button>
-                  </>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1" 
+                    onClick={() => {
+                      signOut();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
                 ) : (
                   <Button variant="default" className="flex-1" asChild>
                     <Link to="/auth" onClick={() => setIsMenuOpen(false)}>

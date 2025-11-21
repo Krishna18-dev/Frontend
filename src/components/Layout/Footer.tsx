@@ -11,11 +11,11 @@ export const Footer = () => {
             <Link to="/" className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
               <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                AI StudyHub
+                Ascendia
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Empowering students with AI tools and personalized learning paths.
+              Empowering students with AI-powered learning and personalized study paths.
             </p>
             <div className="flex gap-3">
               <a
@@ -63,13 +63,13 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/chat" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  AI Mentor
+                <Link to="/study/chat" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Study Companion
                 </Link>
               </li>
               <li>
-                <Link to="/mock-interview" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Mock Interviews
+                <Link to="/roadmap" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Roadmap
                 </Link>
               </li>
             </ul>
@@ -117,7 +117,7 @@ export const Footer = () => {
 
         <div className="mt-8 pt-8 border-t border-border/40">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} AI StudyHub. All rights reserved.
+            © {new Date().getFullYear()} Ascendia. All rights reserved.
           </p>
         </div>
       </div>
