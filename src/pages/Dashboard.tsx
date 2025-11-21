@@ -14,11 +14,43 @@ import {
   Target,
   Sparkles,
 } from "lucide-react";
-import { mockSavedWorks, mockUserProfile } from "@/lib/mockData";
+import { mockSavedWorks } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const savedWorks = mockSavedWorks;
-  const profile = mockUserProfile;
+  const [profile, setProfile] = useState<{ full_name: string; learning_goals: string[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, learning_goals")
+        .eq("id", user?.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -38,7 +70,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">
-            Welcome back, <span className="text-primary">{profile.name}</span>
+            Welcome back, <span className="text-primary">{profile?.full_name || "Learner"}</span>
           </h1>
           <p className="text-muted-foreground text-lg">
             Continue your learning journey and track your progress
@@ -68,8 +100,8 @@ const Dashboard = () => {
                   <TrendingUp className="h-4 w-4 text-success" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-display font-bold">{profile.skills.length}</p>
-              <p className="text-xs text-muted-foreground">Skills mastered</p>
+              <p className="text-2xl sm:text-3xl font-display font-bold">{profile?.learning_goals?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Learning goals</p>
             </div>
           </Card>
 
@@ -105,7 +137,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold">Your Projects</h2>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => navigate("/learn")}>
                 View All
               </Button>
             </div>
@@ -136,14 +168,14 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button size="sm" className="flex-1">
+                      <Button size="sm" className="flex-1" onClick={() => navigate(`/study/${work.tool}`)}>
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Continue
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => toast.info("Export feature coming soon!")}>
                         Export
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => toast.info("Delete feature coming soon!")}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -163,7 +195,7 @@ const Dashboard = () => {
                         Start creating amazing projects with AI tools
                       </p>
                     </div>
-                    <Button>Explore Tools</Button>
+                    <Button onClick={() => navigate("/learn")}>Explore Tools</Button>
                   </div>
                 </Card>
               )}
@@ -179,17 +211,17 @@ const Dashboard = () => {
                 Quick Actions
               </h3>
               <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" size="sm">
+                <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => navigate("/learn")}>
                   <BookOpen className="mr-2 h-4 w-4" />
                   Start New Course
                 </Button>
-                <Button variant="outline" className="w-full justify-start" size="sm">
+                <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => navigate("/study/games")}>
                   <Target className="mr-2 h-4 w-4" />
                   Practice Skills
                 </Button>
-                <Button variant="outline" className="w-full justify-start" size="sm">
+                <Button variant="outline" className="w-full justify-start" size="sm" onClick={() => navigate("/roadmap")}>
                   <Calendar className="mr-2 h-4 w-4" />
-                  View Schedule
+                  View Roadmap
                 </Button>
               </div>
             </Card>
@@ -201,11 +233,15 @@ const Dashboard = () => {
                 Your Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {profile.skills.map((skill) => (
-                  <Badge key={skill} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
+                {profile?.learning_goals && profile.learning_goals.length > 0 ? (
+                  profile.learning_goals.map((goal, index) => (
+                    <Badge key={index} variant="secondary">
+                      {goal}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No learning goals set yet</p>
+                )}
               </div>
             </Card>
 
@@ -216,12 +252,18 @@ const Dashboard = () => {
                 Learning Goals
               </h3>
               <ul className="space-y-3">
-                {profile.goals.map((goal, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="mt-1.5 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
-                    <span className="text-sm text-foreground">{goal}</span>
+                {profile?.learning_goals && profile.learning_goals.length > 0 ? (
+                  profile.learning_goals.map((goal, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="mt-1.5 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                      <span className="text-sm text-foreground">{goal}</span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm text-muted-foreground">
+                    Set your learning goals in your profile
                   </li>
-                ))}
+                )}
               </ul>
             </Card>
 
@@ -236,7 +278,7 @@ const Dashboard = () => {
                   Based on your progress, we suggest exploring advanced video editing 
                   techniques this week!
                 </p>
-                <Button variant="secondary" size="sm" className="w-full">
+                <Button variant="secondary" size="sm" className="w-full" onClick={() => navigate("/study/content")}>
                   Explore Now
                 </Button>
               </div>
