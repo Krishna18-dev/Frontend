@@ -9,6 +9,7 @@ import { Header } from "@/components/Layout/Header";
 import { Footer } from "@/components/Layout/Footer";
 import { StudyLayout } from "@/components/StudyLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { FloatingThemeToggle } from "@/components/FloatingThemeToggle";
 import { AnimatePresence, motion } from "framer-motion";
 import Home from "./pages/Home";
 import Tools from "./pages/Tools";
@@ -280,6 +281,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <AnimatedRoutes />
+            <FloatingThemeToggle />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
