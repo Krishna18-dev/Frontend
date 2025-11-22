@@ -9,6 +9,7 @@ import { mockCategories } from "@/lib/mockData";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { YouTubePlayer } from "@/components/YouTubePlayer";
 
 interface LearningTask {
   id: string;
@@ -316,6 +317,7 @@ const Learn = () => {
   const [youtubeSearchQuery, setYoutubeSearchQuery] = useState("");
   const [youtubeResults, setYoutubeResults] = useState<YouTubeSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
 
   const categoryIcons: Record<string, any> = {
     creativity: Palette,
@@ -585,12 +587,10 @@ const Learn = () => {
                             variant="gradient"
                             size="sm"
                             className="w-full"
-                            asChild
+                            onClick={() => setSelectedVideo({ url: video.url, title: video.title })}
                           >
-                            <a href={video.url} target="_blank" rel="noopener noreferrer">
-                              <Play className="mr-2 h-3 w-3" />
-                              Watch Now
-                            </a>
+                            <Play className="mr-2 h-3 w-3" />
+                            Watch Now
                           </Button>
                         </div>
                       </Card>
@@ -697,16 +697,10 @@ const Learn = () => {
                           variant="gradient"
                           size="sm"
                           className="w-full mt-2"
-                          asChild
+                          onClick={() => setSelectedVideo({ url: course.url, title: course.title })}
                         >
-                          <a
-                            href={course.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Play className="mr-2 h-4 w-4" />
-                            Watch Course
-                          </a>
+                          <Play className="mr-2 h-4 w-4" />
+                          Watch Course
                         </Button>
                       </div>
                     </Card>
@@ -741,6 +735,14 @@ const Learn = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* YouTube Player Modal */}
+      <YouTubePlayer
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        videoUrl={selectedVideo?.url || ""}
+        title={selectedVideo?.title || ""}
+      />
     </div>
   );
 };
