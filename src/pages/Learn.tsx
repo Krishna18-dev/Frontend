@@ -562,10 +562,7 @@ const Learn = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                     >
-                      <Card 
-                        className="overflow-hidden hover:shadow-lg transition-all duration-300 group h-full flex flex-col cursor-pointer"
-                        onClick={() => window.open(video.url, '_blank')}
-                      >
+                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group h-full flex flex-col">
                         <div className="relative aspect-video overflow-hidden bg-muted">
                           <img
                             src={video.thumbnail}
@@ -656,10 +653,7 @@ const Learn = () => {
                     whileHover={{ y: -8, scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Card 
-                      className="overflow-hidden hover:shadow-xl transition-all duration-300 group h-full flex flex-col cursor-pointer"
-                      onClick={() => window.open(course.url, '_blank')}
-                    >
+                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group h-full flex flex-col">
                       {/* Thumbnail */}
                       <div className="relative aspect-video overflow-hidden bg-muted">
                         <img
