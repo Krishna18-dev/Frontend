@@ -93,7 +93,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     if (error) {
-      toast.error(error.message);
+      // Provide helpful error messages based on error type
+      if (error.message.includes('provider is not enabled')) {
+        toast.error('Google sign-in is not configured yet. Please contact support or use email/password login.', {
+          duration: 6000,
+        });
+      } else if (error.message.includes('403') || error.message.includes('access')) {
+        toast.error('Google sign-in access denied. The app may need to add you as a test user. Try email/password login instead.', {
+          duration: 6000,
+        });
+      } else if (error.message.includes('redirect')) {
+        toast.error('Authentication configuration error. Please contact support or use email/password login.', {
+          duration: 6000,
+        });
+      } else {
+        toast.error(`Google sign-in failed: ${error.message}. Try email/password login instead.`, {
+          duration: 6000,
+        });
+      }
     }
 
     return { error };
