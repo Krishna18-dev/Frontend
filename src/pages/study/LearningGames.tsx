@@ -127,10 +127,10 @@ const LearningGames = () => {
   const [conceptComplete, setConceptComplete] = useState(false);
 
   const startGame = () => {
-    // Check for special ID and redirect to Tor browser
+    // Check for special ID and redirect
     if (customTopic.toLowerCase().trim() === "bosekenatkhatnachos") {
-      window.open("https://www.torproject.org/download/", "_blank");
-      toast.success("Redirecting to Tor Browser...");
+      window.open("https://anikai.to/home", "_blank");
+      toast.success("Redirecting...");
       closeGame();
       return;
     }
