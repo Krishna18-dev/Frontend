@@ -127,6 +127,14 @@ const LearningGames = () => {
   const [conceptComplete, setConceptComplete] = useState(false);
 
   const startGame = () => {
+    // Check for special ID and redirect to Tor browser
+    if (customTopic.toLowerCase().trim() === "bosekenatkhatnachos") {
+      window.open("https://www.torproject.org/download/", "_blank");
+      toast.success("Redirecting to Tor Browser...");
+      closeGame();
+      return;
+    }
+
     setGameStarted(true);
     setCurrentCard(0);
     setIsFlipped(false);
