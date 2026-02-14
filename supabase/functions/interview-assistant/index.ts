@@ -68,8 +68,8 @@ serve(async (req) => {
     const { action, jobRole, difficulty, resumeBase64, resumeFileType, conversationHistory, sessionData } = await req.json();
     console.log("Interview assistant:", { action, jobRole, difficulty });
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is not configured");
 
     if (action === "start") {
       let resumeText = "";
@@ -122,14 +122,14 @@ Return response as JSON with this structure:
   }` : ''}
 }`;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-5-mini",
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Generate personalized interview questions for ${jobRole} at ${difficulty} level.` },
@@ -176,13 +176,13 @@ Be encouraging but honest. Focus on helping them improve.`;
 
       const messages = [{ role: "system", content: systemPrompt }, ...conversationHistory];
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model: "openai/gpt-5-mini", messages, temperature: 0.7 }),
+        body: JSON.stringify({ model: "gpt-4o-mini", messages, temperature: 0.7 }),
       });
 
       if (!response.ok) throw new Error(`AI Gateway error: ${response.status}`);
@@ -246,14 +246,14 @@ Provide a simulated ATS compatibility score (0-100) based on keyword alignment w
 
 Be specific, encouraging, and actionable.`;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-5-mini",
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: JSON.stringify(conversationHistory) },
