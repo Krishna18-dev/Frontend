@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const AI_MODEL = "google/gemini-3-flash-preview";
+
 function extractTextFromBase64(base64: string, fileType: string): string {
   const binaryStr = atob(base64);
   const bytes = new Uint8Array(binaryStr.length);
@@ -26,33 +29,69 @@ function extractTextFromBase64(base64: string, fileType: string): string {
   return text.replace(/<[^>]+>/g, ' ').replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 15000);
 }
 
-async function callGemini(systemPrompt: string, userPrompt: string, apiKey: string, jsonMode = false) {
-  const body: any = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-  };
-  if (jsonMode) {
-    body.generationConfig = { responseMimeType: "application/json" };
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
-  );
+async function callAI(systemPrompt: string, userPrompt: string, apiKey: string) {
+  const response = await fetch(AI_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("Gemini API error:", response.status, errorText);
-    if (response.status === 429) {
-      throw { status: 429, message: "Rate limit exceeded. Please try again later." };
-    }
-    throw new Error(`Gemini API error: ${response.status}`);
+    console.error("AI Gateway error:", response.status, errorText);
+    if (response.status === 429) throw { status: 429, message: "Rate limit exceeded. Please try again later." };
+    if (response.status === 402) throw { status: 402, message: "AI usage limit reached. Please add credits." };
+    throw new Error(`AI Gateway error: ${response.status}`);
   }
 
   const data = await response.json();
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!content) throw new Error("No content generated from Gemini API");
-  return content;
+  return data.choices?.[0]?.message?.content;
+}
+
+async function callAIJSON(systemPrompt: string, userPrompt: string, apiKey: string) {
+  const response = await fetch(AI_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI Gateway error:", response.status, errorText);
+    if (response.status === 429) throw { status: 429, message: "Rate limit exceeded." };
+    if (response.status === 402) throw { status: 402, message: "AI usage limit reached." };
+    throw new Error(`AI Gateway error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("No content generated");
+
+  // Parse JSON, stripping markdown fences if present
+  try {
+    return JSON.parse(content);
+  } catch {
+    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(cleaned);
+  }
 }
 
 serve(async (req) => {
@@ -86,8 +125,8 @@ serve(async (req) => {
     const { action, jobRole, difficulty, resumeBase64, resumeFileType, conversationHistory, sessionData } = await req.json();
     console.log("Interview assistant:", { action, jobRole, difficulty });
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     if (action === "start") {
       let resumeText = "";
@@ -111,11 +150,11 @@ Return JSON:
   "resumeAnalysis": { "extractedSkills": [], "experienceLevel": "Junior|Mid|Senior", "strengths": [] }` : ''}
 }`;
 
-      const content = await callGemini(systemPrompt, `Generate personalized interview questions for ${jobRole} at ${difficulty} level.`, GEMINI_API_KEY, true);
+      const content = await callAIJSON(systemPrompt, `Generate personalized interview questions for ${jobRole} at ${difficulty} level.`, LOVABLE_API_KEY);
 
       await supabaseClient.rpc('upsert_daily_stats', { p_user_id: user.id, p_study_minutes: 15, p_courses: 0 });
 
-      return new Response(JSON.stringify(JSON.parse(content)), {
+      return new Response(JSON.stringify(content), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
@@ -128,8 +167,7 @@ Analyze the candidate's answer and provide:
 4. Specific suggestions
 Be encouraging but honest.`;
 
-      const userPrompt = JSON.stringify(conversationHistory);
-      const feedback = await callGemini(systemPrompt, userPrompt, GEMINI_API_KEY);
+      const feedback = await callAI(systemPrompt, JSON.stringify(conversationHistory), LOVABLE_API_KEY);
 
       if (sessionData) {
         const score = Math.floor(Math.random() * 30) + 70;
@@ -171,7 +209,7 @@ Be encouraging but honest.`;
 ## Action Plan
 Be specific, encouraging, and actionable.`;
 
-      const feedback = await callGemini(systemPrompt, JSON.stringify(conversationHistory), GEMINI_API_KEY);
+      const feedback = await callAI(systemPrompt, JSON.stringify(conversationHistory), LOVABLE_API_KEY);
 
       return new Response(JSON.stringify({ feedback }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -182,9 +220,9 @@ Be specific, encouraging, and actionable.`;
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    if (error?.status === 429) {
+    if (error?.status === 429 || error?.status === 402) {
       return new Response(JSON.stringify({ error: error.message }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: error.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     console.error("Error in interview-assistant:", error);

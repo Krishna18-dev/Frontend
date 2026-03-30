@@ -7,6 +7,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const AI_MODEL = "google/gemini-3-flash-preview";
+
+async function callAI(systemPrompt: string, userPrompt: string, apiKey: string) {
+  const response = await fetch(AI_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI Gateway error:", response.status, errorText);
+    if (response.status === 429) {
+      throw { status: 429, message: "Rate limit exceeded. Please try again later." };
+    }
+    if (response.status === 402) {
+      throw { status: 402, message: "AI usage limit reached. Please add credits." };
+    }
+    throw new Error(`AI Gateway error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,10 +61,8 @@ serve(async (req) => {
     const { contentType, topic, details, saveToLibrary } = await req.json();
     console.log("Generating content:", { contentType, topic, details, saveToLibrary });
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const systemPrompts: Record<string, string> = {
       "lecture-notes": "You are an expert educator creating detailed lecture notes. Structure content with: 1) Introduction/Overview 2) Main Concepts (with definitions and explanations) 3) Key Examples 4) Important Points to Remember 5) Summary. Use clear headings, bullet points, and emphasize core concepts.",
@@ -52,30 +85,8 @@ serve(async (req) => {
     const systemPrompt = systemPrompts[contentType] || "You are a helpful educational assistant.";
     const userPrompt = prompts[contentType] || `Create content about: ${topic}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-
-    const aiData = await response.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!content) throw new Error("No content generated from Gemini API");
+    const content = await callAI(systemPrompt, userPrompt, LOVABLE_API_KEY);
+    if (!content) throw new Error("No content generated");
 
     console.log("Content generated successfully");
 
@@ -103,8 +114,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in generate-content:", error);
+    if (error?.status === 429 || error?.status === 402) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

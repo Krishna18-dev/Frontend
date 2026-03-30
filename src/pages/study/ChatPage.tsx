@@ -16,7 +16,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! I'm your AI Study Companion powered by Gemini. Ask me anything about your studies, career prep, or learning goals. I can help with study notes, roadmaps, practice questions, and interview prep!",
+      content: "Hi! I'm your AI Study Companion. Ask me anything about your studies, career prep, or learning goals. I can help with study notes, roadmaps, practice questions, and interview prep!",
     },
   ]);
   const [message, setMessage] = useState("");
@@ -116,7 +116,7 @@ const ChatPage = () => {
             <h1 className="text-xl font-semibold">AI Study Companion</h1>
           </div>
           <p className="text-sm opacity-90">
-            Powered by Gemini • Ask me anything about your studies, career prep, or learning goals
+            AI-Powered • Ask me anything about your studies, career prep, or learning goals
           </p>
         </div>
       </div>
