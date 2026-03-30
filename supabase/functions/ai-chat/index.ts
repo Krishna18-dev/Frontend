@@ -7,58 +7,43 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const AI_MODEL = "google/gemini-3-flash-preview";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function requestGeminiWithRetry(messages: Array<{ role: string; content: string }>, apiKey: string) {
-  const systemPrompt = `You are an AI Study Mentor — a friendly, knowledgeable, and encouraging learning companion. Your role is to help students understand concepts, solve problems, and improve their study skills.
-
-Guidelines:
-- Be conversational yet educational
-- Break down complex topics into simple explanations
-- Use examples, analogies, and real-world connections
-- Encourage critical thinking
-- Suggest study techniques when appropriate
-- Use markdown formatting for better readability
-- Include code examples with syntax highlighting when relevant
-- Be supportive and motivating`;
-
-  const geminiMessages = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-
-  let lastStatus = 500;
-  let lastBody = "";
-
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: geminiMessages,
-        }),
-      }
-    );
+async function callAIWithRetry(messages: Array<{ role: string; content: string }>, apiKey: string, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(AI_GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model: AI_MODEL, messages }),
+    });
 
     if (response.ok) {
-      return response.json();
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content;
     }
 
-    lastStatus = response.status;
-    lastBody = await response.text();
-    console.error(`Gemini API error attempt ${attempt + 1}:`, response.status, lastBody);
-
-    if (response.status !== 429 || attempt === 2) {
-      break;
+    if (response.status === 429) {
+      if (attempt < retries) {
+        await sleep(1500 * (attempt + 1));
+        continue;
+      }
+      throw { status: 429, message: "The AI service is busy right now. Please wait a moment and try again." };
     }
 
-    await sleep(1200 * (attempt + 1));
+    if (response.status === 402) {
+      throw { status: 402, message: "AI usage limit reached. Please add credits to your workspace." };
+    }
+
+    const errorText = await response.text();
+    console.error("AI Gateway error:", response.status, errorText);
+    throw new Error(`AI Gateway error: ${response.status}`);
   }
-
-  return { errorStatus: lastStatus, errorBody: lastBody };
 }
 
 serve(async (req) => {
@@ -78,30 +63,28 @@ serve(async (req) => {
 
     const { messages } = await req.json();
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    if (!GEMINI_API_KEY.startsWith("AIza")) {
-      throw new Error("Invalid GEMINI_API_KEY format. Keys must start with 'AIza'.");
-    }
+    const systemPrompt = `You are an AI Study Mentor — a friendly, knowledgeable, and encouraging learning companion. Your role is to help students understand concepts, solve problems, and improve their study skills.
 
-    const data = await requestGeminiWithRetry(messages, GEMINI_API_KEY);
+Guidelines:
+- Be conversational yet educational
+- Break down complex topics into simple explanations
+- Use examples, analogies, and real-world connections
+- Encourage critical thinking
+- Suggest study techniques when appropriate
+- Use markdown formatting for better readability
+- Include code examples with syntax highlighting when relevant
+- Be supportive and motivating`;
 
-    if (data?.errorStatus) {
-      if (data.errorStatus === 429) {
-        return new Response(
-          JSON.stringify({ error: "The AI service is busy right now. Please wait a moment and try again." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    const aiMessages = [
+      { role: "system", content: systemPrompt },
+      ...messages,
+    ];
 
-      throw new Error(`Gemini API error: ${data.errorStatus}`);
-    }
-
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!content) throw new Error("No content generated from Gemini API");
+    const content = await callAIWithRetry(aiMessages, LOVABLE_API_KEY);
+    if (!content) throw new Error("No content generated");
 
     if (user) {
       await supabaseClient.rpc('upsert_daily_stats', { p_user_id: user.id, p_study_minutes: 5, p_courses: 0 });
@@ -111,8 +94,13 @@ serve(async (req) => {
       JSON.stringify({ content }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in ai-chat function:", error);
+    if (error?.status === 429 || error?.status === 402) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

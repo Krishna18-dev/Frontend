@@ -7,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const AI_MODEL = "google/gemini-3-flash-preview";
+
 function extractVideoId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
@@ -79,6 +82,34 @@ async function fetchTranscript(videoId: string): Promise<string | null> {
   }
 }
 
+async function callAI(systemPrompt: string, userPrompt: string, apiKey: string) {
+  const response = await fetch(AI_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI Gateway error:", response.status, errorText);
+    if (response.status === 429) throw { status: 429, message: "Rate limit exceeded." };
+    if (response.status === 402) throw { status: 402, message: "AI usage limit reached." };
+    throw new Error(`AI Gateway error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -117,8 +148,8 @@ serve(async (req) => {
 
     const transcript = await fetchTranscript(videoId);
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const videoContext = transcript ? `Video Transcript:\n${transcript}` : `Video Description:\n${metadata.description}`;
 
@@ -135,29 +166,11 @@ Format with: Quick Summary, Key Concepts, Detailed Notes, Code Examples (if tech
       userPrompt += `\n\nAlso include: Goal Breakdown, 7-Day Learning Plan, Required Tools, Practice Tasks, Revision Strategy, Mini Project, Self-Evaluation Checklist.`;
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: "You are an expert note-taking assistant that generates comprehensive, structured study notes from YouTube videos in clean Markdown." }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        }),
-      }
+    const content = await callAI(
+      "You are an expert note-taking assistant that generates comprehensive, structured study notes from YouTube videos in clean Markdown.",
+      userPrompt,
+      LOVABLE_API_KEY
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-
-    const aiData = await response.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!content) throw new Error("No content generated");
 
     if (saveToLibrary && user) {
@@ -175,8 +188,13 @@ Format with: Quick Summary, Key Concepts, Detailed Notes, Code Examples (if tech
       content,
       metadata: { title: metadata.title, channel: metadata.channel, duration: formatDuration(metadata.duration), thumbnail: metadata.thumbnail, videoId, hasTranscript: !!transcript }
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in youtube-notes:", error);
+    if (error?.status === 429 || error?.status === 402) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
